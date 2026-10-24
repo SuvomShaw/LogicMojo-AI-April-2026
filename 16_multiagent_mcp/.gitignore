@@ -1,0 +1,13 @@
+.DS_Store
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.streamlit/secrets.toml
+
+# Built on your machine. The download and build scripts recreate these.
+chroma_db/
+parsed/
+corpus/
+*.sqlite
+value_catalog.json
+memory_store.json

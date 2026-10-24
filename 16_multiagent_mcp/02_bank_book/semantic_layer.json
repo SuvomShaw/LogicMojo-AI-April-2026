@@ -1,0 +1,190 @@
+{
+  "database": "financial",
+  "title": "Berka Czech bank, 1993-1998",
+  "license": "CC-BY-NC-4.0",
+  "source": "https://huggingface.co/datasets/domyn/FINCH",
+  "origin": "PKDD 1999 financial dataset by Petr Berka, published again in BIRD and in FINCH.",
+  "why_this_file": "The column names A2 and A11 do not say what they mean. A production text-to-SQL system keeps this dictionary beside the database. The model reads the dictionary, not a guess.",
+  "tables": {
+    "district": {
+      "purpose": "77 Czech districts. Demographics for 1995 and 1996. One row per district.",
+      "columns": {
+        "district_id": "Primary key. Branch and client tables point here.",
+        "A2": "District name, for example Pisek or Hl.m. Praha.",
+        "A3": "Region name, for example east Bohemia or Prague.",
+        "A4": "Number of inhabitants. Stored as text in this file.",
+        "A5": "Municipalities with fewer than 499 inhabitants.",
+        "A6": "Municipalities with 500 to 1999 inhabitants.",
+        "A7": "Municipalities with 2000 to 9999 inhabitants.",
+        "A8": "Municipalities with 10000 or more inhabitants.",
+        "A9": "Number of cities.",
+        "A10": "Ratio of urban inhabitants.",
+        "A11": "Average salary.",
+        "A12": "Unemployment rate in 1995.",
+        "A13": "Unemployment rate in 1996.",
+        "A14": "Entrepreneurs per 1000 inhabitants.",
+        "A15": "Number of crimes committed in 1995.",
+        "A16": "Number of crimes committed in 1996."
+      },
+      "foreign_keys": []
+    },
+    "account": {
+      "purpose": "One row per bank account. 4500 accounts, opened from 1993 to 1997.",
+      "columns": {
+        "account_id": "Primary key.",
+        "district_id": "District of the branch that opened the account. Joins to district.district_id.",
+        "frequency": "How often the bank prints a statement. Use the stored Czech code, not the English word.",
+        "date": "Date the account was opened. Format YYYY-MM-DD."
+      },
+      "codes": {
+        "frequency": {
+          "POPLATEK MESICNE": "monthly statement",
+          "POPLATEK TYDNE": "weekly statement",
+          "POPLATEK PO OBRATU": "statement issued after each transaction"
+        }
+      },
+      "foreign_keys": [
+        {"column": "district_id", "ref_table": "district", "ref_column": "district_id"}
+      ]
+    },
+    "client": {
+      "purpose": "One row per client. Gender and birth date were decoded from the original birth number.",
+      "columns": {
+        "client_id": "Primary key.",
+        "gender": "F or M.",
+        "birth_date": "Birth date, YYYY-MM-DD.",
+        "district_id": "District where the client lives. Joins to district.district_id."
+      },
+      "codes": {
+        "gender": {"F": "female", "M": "male"}
+      },
+      "foreign_keys": [
+        {"column": "district_id", "ref_table": "district", "ref_column": "district_id"}
+      ]
+    },
+    "disp": {
+      "purpose": "Links a client to an account. This is the bridge between people, accounts, cards, and loans.",
+      "columns": {
+        "disp_id": "Primary key.",
+        "client_id": "Joins to client.client_id.",
+        "account_id": "Joins to account.account_id.",
+        "type": "OWNER or DISPONENT."
+      },
+      "codes": {
+        "type": {
+          "OWNER": "the account owner, the person who can be granted a loan",
+          "DISPONENT": "a person allowed to operate the account who is not the owner"
+        }
+      },
+      "foreign_keys": [
+        {"column": "client_id", "ref_table": "client", "ref_column": "client_id"},
+        {"column": "account_id", "ref_table": "account", "ref_column": "account_id"}
+      ]
+    },
+    "card": {
+      "purpose": "Credit cards. 892 cards. The type is stored in lowercase.",
+      "columns": {
+        "card_id": "Primary key.",
+        "disp_id": "Joins to disp.disp_id. A card belongs to a disposition, not directly to a client.",
+        "type": "Credit card type, stored in lowercase: classic, gold, or junior.",
+        "issued": "Date the card was issued, YYYY-MM-DD."
+      },
+      "codes": {
+        "type": {
+          "classic": "classic card",
+          "gold": "gold card",
+          "junior": "junior card"
+        }
+      },
+      "foreign_keys": [
+        {"column": "disp_id", "ref_table": "disp", "ref_column": "disp_id"}
+      ]
+    },
+    "loan": {
+      "purpose": "682 loans. Amount is in Czech crowns.",
+      "columns": {
+        "loan_id": "Primary key.",
+        "account_id": "Joins to account.account_id.",
+        "date": "Date the loan was approved, YYYY-MM-DD.",
+        "amount": "Approved amount.",
+        "duration": "Length of the loan in months.",
+        "payments": "Monthly payment.",
+        "status": "One letter: A, B, C, or D."
+      },
+      "codes": {
+        "status": {
+          "A": "contract finished, no problems",
+          "B": "contract finished, loan not paid",
+          "C": "contract running, payments OK",
+          "D": "contract running, client in debt"
+        }
+      },
+      "foreign_keys": [
+        {"column": "account_id", "ref_table": "account", "ref_column": "account_id"}
+      ]
+    },
+    "order": {
+      "purpose": "Standing orders. The table name is a SQL reserved word, so it must be written as \"order\".",
+      "columns": {
+        "order_id": "Primary key.",
+        "account_id": "Joins to account.account_id.",
+        "bank_to": "Partner bank code.",
+        "account_to": "Partner account.",
+        "amount": "Amount of the standing order.",
+        "k_symbol": "Purpose code. A blank means the purpose was not filled in."
+      },
+      "codes": {
+        "k_symbol": {
+          "SIPO": "household payment",
+          "UVER": "loan payment",
+          "POJISTNE": "insurance payment",
+          "LEASING": "leasing payment"
+        }
+      },
+      "foreign_keys": [
+        {"column": "account_id", "ref_table": "account", "ref_column": "account_id"}
+      ]
+    },
+    "trans": {
+      "purpose": "1,056,320 transactions from 1993 through 1998. Filter this table. Do not read it without a WHERE.",
+      "columns": {
+        "trans_id": "Primary key.",
+        "account_id": "Joins to account.account_id.",
+        "date": "Transaction date, YYYY-MM-DD. Use strftime('%Y', date) for the four-digit calendar value. The code %y returns two digits.",
+        "type": "Direction of the money: PRIJEM, VYDAJ, or VYBER.",
+        "operation": "How the money moved. More precise than type.",
+        "amount": "Transaction amount.",
+        "balance": "Account balance after this transaction.",
+        "k_symbol": "Purpose of the transaction. Empty when the bank did not record one.",
+        "bank": "Partner bank code, for example AB or QR.",
+        "account": "Partner account number."
+      },
+      "codes": {
+        "type": {
+          "PRIJEM": "money in",
+          "VYDAJ": "money out",
+          "VYBER": "cash withdrawal recorded in the type column"
+        },
+        "operation": {
+          "VYBER": "cash withdrawal",
+          "VYBER KARTOU": "withdrawal with a bank card",
+          "VKLAD": "cash deposit",
+          "PREVOD NA UCET": "transfer to another bank",
+          "PREVOD Z UCTU": "collection from another bank"
+        },
+        "k_symbol": {
+          "SIPO": "household payment",
+          "UVER": "loan payment",
+          "POJISTNE": "insurance payment",
+          "SLUZBY": "service fee",
+          "UROK": "interest credited",
+          "SANKC. UROK": "sanction interest on a negative balance",
+          "DUCHOD": "old-age pension"
+        }
+      },
+      "foreign_keys": [
+        {"column": "account_id", "ref_table": "account", "ref_column": "account_id"}
+      ]
+    }
+  }
+}

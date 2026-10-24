@@ -1,0 +1,5 @@
+data/*.sqlite
+data/value_catalog.json
+__pycache__/
+.ipynb_checkpoints/
+.streamlit/secrets.toml
