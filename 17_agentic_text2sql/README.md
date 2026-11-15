@@ -1,12 +1,10 @@
-# 02 — Bank book
+# Agentic Text-to-SQL
 
-The same four rules, on a second drawer. The customer asks for a count or a card type. The app links the right tables, writes one `SELECT`, runs it read-only, and waits when the result is a measured number.
-
-The screen title is **Berka branch desk**. The file is a real Czech bank database: 8 tables and about a million transactions. Column `A2` does not say "district name". `semantic_layer.json` is the dictionary that says so.
+Use the **Berka branch desk** to ask a question about a Czech bank database. Follow the steps from your question to the SQL and its result. For “How many accounts are in Pisek?”, the agent needs to know that `A2` means district name. That description comes from `semantic_layer.json`.
 
 ## Run it
 
-From this folder, with the course Python environment active:
+Start Ollama with `qwen3.5:4b` available. Then run these commands from this folder with your course Python environment active.
 
 ```bash
 python -m pip install -r requirements.txt
@@ -14,26 +12,21 @@ python download_corpus.py
 python -m streamlit run app.py
 ```
 
-`download_corpus.py` copies `data/financial.sqlite` out of the FINCH dataset. The database is about 71 MB and is not in git. The script also checks the saved questions. If a stored answer changed, it stops.
+`download_corpus.py` fetches `data/financial.sqlite` from FINCH and checks the saved query results. The download is about 71 MB. The lab uses keyword matching to select from the eight tables.
 
-Ollama must be running, with `qwen3.5:4b`. This demo does not need the embedding model. Eight tables fit in the prompt after a keyword link.
+## Try the app
 
-Open **Path** under each answer. When a sentence waits, the SQL and the grid sit beside it. Read the grid before you approve.
-
-## Click these, in order
+Open **Path** after each question. When the graph pauses, you can read the SQL and result grid beside the draft.
 
 | Button | What you are checking |
 |---|---|
-| Greeting | The database stays closed. |
-| Not in the bank | HarborDesk leave is not in these tables. The desk says `NOT_IN_DATABASE`. |
-| Delete a loan | She refuses before any SQL is written. |
-| Card type — no signature | The answer is a word. A word does not wait. |
-| Pisek accounts — needs a signature | The answer is a count. A person signs it. |
+| Greeting | The graph answers directly. |
+| Not in the bank | The HarborDesk leave question returns `NOT_IN_DATABASE`. |
+| Delete a loan | The graph refuses the request before generating SQL. |
+| Card type — no signature | The app returns the card type directly. |
+| Pisek accounts — needs a signature | The app waits for you to check the count and its district filter. |
 
-Fill in the two answers from the screen:
-
-- Client 13539's card type: ________
-- Accounts in Pisek: ________
+Record the card type for client `13539` and the number of accounts in Pisek. For the count, check which tables the model joined and which district spelling it used.
 
 ## Architecture
 
@@ -57,35 +50,27 @@ flowchart TD
   H -->|Reject| P
 ```
 
-There are two locks on a write. `route` hears the question and refuses "delete". `guard_sql` reads the SQL itself, in case a delete was ever written. The connection is read-only as well. A prompt is not one of these locks.
+The app checks for a write request in `route`, checks the generated statement in `guard_sql`, and opens SQLite in read-only mode. Counts and other numeric results pause for review. Approving uses the current draft. Editing sends the text you enter.
 
-A card type is a label, so it is sent. A count is a measurement, so a person signs the sentence. Approve and edit do not call the model again.
+## Follow the code
 
-## Code checklist
+Open `text2sql.py` at `START HERE` and follow the steps you saw for the Pisek question.
 
-Search `text2sql.py` for `START HERE`, then read in this order.
+- `app.py` calls `ask`. A review decision resumes the same thread.
+- `route` separates greetings, write requests, and bank questions. `refuse` handles write requests.
+- `link_tables` uses the column descriptions to choose tables. `write_sql` uses the stored spellings in the value catalog to write a query.
+- `guard_sql` checks that the model returned a single read query. `execute_sql` runs it with row and time limits. `repair` lets the graph try another query once.
+- `draft` writes a sentence from the grid. `human_review` pauses for your decision. `build_assistant` connects the steps.
 
-- [ ] `app.py` — the five buttons call `ask`. A signature resumes the same thread.
-- [ ] `route` — hello, a write, or a bank question.
-- [ ] `refuse` — the model is not asked to draft the `DELETE`.
-- [ ] `link_tables` — which tables this question needs. The dictionary is `semantic_layer.json`.
-- [ ] `write_sql` — one statement, using the real spellings from the value catalog.
-- [ ] `guard_sql` — no SQL, more than one statement, not a read, or it does not start with `SELECT`.
-- [ ] `execute_sql` — read-only connection, a row cap, and a time cap.
-- [ ] `repair` — one new `SELECT`, then the guard again.
-- [ ] `draft` — one sentence from the grid. A number that is not in the grid is replaced.
-- [ ] `human_review` — pause until the person approves, edits, or rejects.
-- [ ] `build_assistant` — the wires in the picture above.
-
-## Notebooks, same story, slower
+## Notebooks
 
 Run these from this folder after `download_corpus.py`. Notebook 1 does not need Ollama. Notebooks 2 and 3 do.
 
-| Notebook | What one pass teaches |
+| Notebook | What you'll do |
 |---|---|
-| [01_the_bank_database.ipynb](01_the_bank_database.ipynb) | Open the file. Read the dictionary next to names like `A2`. A lowercase filter misses the stored spelling. |
-| [02_link_guard_execute.ipynb](02_link_guard_execute.ipynb) | Link the tables, refuse a write, run one `SELECT`. |
-| [03_sign_the_number.ipynb](03_sign_the_number.ipynb) | The same graph as the app. A count pauses for a person. |
+| [01_the_bank_database.ipynb](01_the_bank_database.ipynb) | Explore the tables and check how case and date formats affect a count. |
+| [02_link_guard_execute.ipynb](02_link_guard_execute.ipynb) | Choose tables, test the SQL guard, and compare results with the saved answers. |
+| [03_sign_the_number.ipynb](03_sign_the_number.ipynb) | Check the query and result for Pisek, then edit the draft answer. |
 
 The human approval lab is also available at its original filename, [03_agentic_text2sql_hitl.ipynb](03_agentic_text2sql_hitl.ipynb).
 

@@ -1,6 +1,6 @@
 """Berka branch desk. The same graph as notebook 3, with the SQL and the grid beside the sentence.
 
-Students: README.md in this folder is the map. The buttons call text2sql.ask.
+Follow the examples in README.md. The buttons call text2sql.ask.
 The first decision in the engine is marked START HERE.
 
     streamlit run app.py

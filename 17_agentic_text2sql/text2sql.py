@@ -1,6 +1,6 @@
 """Bank desk: a question becomes one SELECT, then a person signs a count.
 
-Students: open README.md in this folder first, then search this file for START HERE.
+Start with README.md, then search this file for START HERE to follow the graph.
 
   hello                         -> chat
   delete, update, insert, drop  -> refuse       the SQL is never written

@@ -1,6 +1,6 @@
 """Document desk: search real PDFs, then wait when the answer is a number.
 
-Students: open README.md in this folder first, then search this file for START HERE.
+Start with README.md, then search this file for START HERE to follow the graph.
 
 Read the graph in this order:
 
