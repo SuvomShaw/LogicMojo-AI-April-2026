@@ -1,0 +1,90 @@
+{
+  "license": "CC-BY-NC-4.0",
+  "source": "https://huggingface.co/datasets/domyn/FINCH",
+  "paper_bird": "https://bird-bench.github.io/",
+  "database_file": "data/financial.sqlite",
+  "note": "These nine questions are taken from the FINCH financial set. The SQL below was re-run on this SQLite file and the result was stored. Several published queries lowercase the codes (east bohemia, owner, poplatek mesicne) and return no rows here, because this file still has the original spellings.",
+  "questions": [
+    {
+      "id": "pisek_accounts",
+      "finch_question_id": 52,
+      "question": "How many accounts are there in the district of Pisek?",
+      "checked_sql": "SELECT COUNT(*) AS accounts FROM account AS a INNER JOIN district AS d ON a.district_id = d.district_id WHERE d.A2 = 'Pisek'",
+      "columns": ["accounts"],
+      "result": [[46]],
+      "lesson": "A2 is the district name. The stored spelling is Pisek, with a capital P."
+    },
+    {
+      "id": "praha_men",
+      "finch_question_id": 66,
+      "question": "How many male clients live in the district Hl.m. Praha?",
+      "checked_sql": "SELECT COUNT(*) AS clients FROM client AS c INNER JOIN district AS d ON c.district_id = d.district_id WHERE c.gender = 'M' AND d.A2 = 'Hl.m. Praha'",
+      "columns": ["clients"],
+      "result": [[339]],
+      "lesson": "Gender is stored as M and F, not male and female."
+    },
+    {
+      "id": "card_type",
+      "finch_question_id": 73,
+      "question": "What type of credit card does the client with id 13539 own?",
+      "checked_sql": "SELECT ca.type AS card_type FROM card AS ca INNER JOIN disp AS d ON ca.disp_id = d.disp_id WHERE d.client_id = 13539",
+      "columns": ["card_type"],
+      "result": [["junior"]],
+      "lesson": "A card joins to a client through disp. The type is a word, so the desk does not wait for a signature."
+    },
+    {
+      "id": "gold_owner_cards",
+      "finch_question_id": 51,
+      "question": "How many gold credit cards are held by an account owner?",
+      "checked_sql": "SELECT COUNT(*) AS gold_owner_cards FROM card AS ca INNER JOIN disp AS d ON ca.disp_id = d.disp_id WHERE ca.type = 'gold' AND d.type = 'OWNER'",
+      "columns": ["gold_owner_cards"],
+      "result": [[88]],
+      "lesson": "Card type is lowercase gold. Disposition type is uppercase OWNER."
+    },
+    {
+      "id": "statement_after_transaction",
+      "finch_question_id": 1,
+      "question": "How many accounts receive a statement after each transaction?",
+      "checked_sql": "SELECT COUNT(*) AS accounts FROM account WHERE frequency = 'POPLATEK PO OBRATU'",
+      "columns": ["accounts"],
+      "result": [[93]],
+      "lesson": "The English phrase is not in the column. The stored code is POPLATEK PO OBRATU."
+    },
+    {
+      "id": "east_bohemia_after_transaction",
+      "finch_question_id": 1,
+      "question": "How many accounts in the east Bohemia region receive a statement after each transaction?",
+      "checked_sql": "SELECT COUNT(*) AS accounts FROM account AS a INNER JOIN district AS d ON a.district_id = d.district_id WHERE d.A3 = 'east Bohemia' AND a.frequency = 'POPLATEK PO OBRATU'",
+      "columns": ["accounts"],
+      "result": [[13]],
+      "lesson": "The region is stored as east Bohemia. The lowercase string east bohemia matches zero rows."
+    },
+    {
+      "id": "unemployment_year",
+      "finch_question_id": 3,
+      "question": "Which year had the higher average unemployment rate, 1995 or 1996?",
+      "checked_sql": "SELECT CASE WHEN AVG(A13) > AVG(A12) THEN '1996' ELSE '1995' END AS higher_unemployment_year FROM district",
+      "columns": ["higher_unemployment_year"],
+      "result": [["1996"]],
+      "lesson": "A12 is the 1995 unemployment rate and A13 is the 1996 rate. The names do not say so."
+    },
+    {
+      "id": "accounts_opened_1993",
+      "finch_question_id": 23,
+      "question": "How many accounts were opened in 1993?",
+      "checked_sql": "SELECT COUNT(*) AS accounts FROM account WHERE strftime('%Y', date) = '1993'",
+      "columns": ["accounts"],
+      "result": [[1139]],
+      "lesson": "strftime('%Y', date) returns 1993. strftime('%y', date) returns 93, so a comparison with 1993 returns zero."
+    },
+    {
+      "id": "avg_loan_male_owner",
+      "finch_question_id": 44,
+      "question": "What is the average loan amount for male account owners?",
+      "checked_sql": "SELECT ROUND(AVG(l.amount), 2) AS average_loan FROM client AS c INNER JOIN disp AS d ON c.client_id = d.client_id INNER JOIN loan AS l ON d.account_id = l.account_id WHERE c.gender = 'M' AND d.type = 'OWNER'",
+      "columns": ["average_loan"],
+      "result": [[147501.74]],
+      "lesson": "The amount is a measured number, so a person signs the sentence before it is sent."
+    }
+  ]
+}
