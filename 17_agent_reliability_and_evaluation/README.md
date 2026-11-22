@@ -24,6 +24,10 @@ In a second terminal, use the same Python environment and run `python -m jupyter
 
 The [API script](sales_agent_api.py) is used by the notebook. Follow `chat()` into `run_agent()` to see how the server validates a question, runs the agent, and returns the answer.
 
+## Assignment
+
+After the walkthrough, try [Add a regional sales lookup](08_sales_agent_assignment.ipynb). Extend the API, check the response and tool use, build context for a follow-up, and sketch an AWS deployment.
+
 ## Optional labs
 
 Each lab includes its own examples. Only the memory lab needs the sales API. For any lab that lists Ollama, open Ollama and pull `qwen3.5:4b` using the command above.
